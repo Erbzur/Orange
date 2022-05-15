@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Orange</string>
+    <string name="module_description">Specifying orientation per app</string>
+    <string name="label_module_not_active">Not Active</string>
+    <string name="title_menu_search">Search</string>
+    <string name="title_menu_refresh">Refresh</string>
+    <string name="title_menu_setting">Setting</string>
+    <string name="title_menu_exit">Exit</string>
+
+    <string name="label_orientation_options_unspecified">Unspecified</string>
+    <string name="label_orientation_options_portrait">Portrait</string>
+    <string name="label_orientation_options_landscape">Landscape</string>
+    <string name="label_orientation_options_reverse_landscape">Reverse landscape</string>
+    <string name="label_orientation_options_sensor_landscape">Sensor landscape</string>
+    <string name="label_orientation_options_sensor">Sensor</string>
+
+    <string name="key_setting_hide_icon" translatable="false">hide_icon</string>
+    <string name="key_about_version" translatable="false">version</string>
+    <string name="key_about_github" translatable="false">github</string>
+
+    <string name="title_category_settings">Settings</string>
+    <string name="title_setting_hide_icon">Hide Icon</string>
+    <string name="title_category_about">About</string>
+    <string name="title_about_version">Version</string>
+    <string name="title_about_github" translatable="false">Github</string>
+    <string name="url_about_github" translatable="false">https://github.com/Erbzur/orange</string>
+</resources>
