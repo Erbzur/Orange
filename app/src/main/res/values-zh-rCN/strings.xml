@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="label_module_not_active">未激活</string>
+    <string name="title_menu_search">搜索</string>
+    <string name="title_menu_refresh">刷新</string>
+    <string name="title_menu_settings">设置</string>
+    <string name="title_menu_exit">退出</string>
+    <string name="label_orientation_options_unspecified">未指定</string>
+    <string name="label_orientation_options_portrait">竖屏</string>
+    <string name="label_orientation_options_landscape">横屏</string>
+    <string name="label_orientation_options_reverse_landscape">反向横屏</string>
+    <string name="label_orientation_options_sensor_landscape">双向横屏</string>
+    <string name="label_orientation_options_sensor">传感器</string>
+    <string name="title_category_settings">设置</string>
+    <string name="title_setting_hide_icon">隐藏桌面图标</string>
+    <string name="title_setting_show_system_apps">显示系统应用</string>
+    <string name="title_category_about">关于</string>
+    <string name="title_about_version">版本</string>
+</resources>

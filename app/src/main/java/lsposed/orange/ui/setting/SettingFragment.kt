@@ -1,10 +1,11 @@
-package lsposed.orange.ui
+package lsposed.orange.ui.setting
 
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
@@ -14,7 +15,7 @@ import lsposed.orange.R
 class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChangeListener {
 
     companion object {
-        val TAG = SettingFragment::class.simpleName
+        val TAG = SettingFragment::class.simpleName!!
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -28,7 +29,22 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChang
         }
     }
 
-    override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
+    override fun onStart() {
+        super.onStart()
+        activity?.setTitle(R.string.title_category_settings)
+        toggleActionBarBackButton(true)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        toggleActionBarBackButton(false)
+    }
+
+    private fun toggleActionBarBackButton(status: Boolean) {
+        (activity as AppCompatActivity?)?.supportActionBar?.setDisplayHomeAsUpEnabled(status)
+    }
+
+    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
         return activity?.let {
             val status =
                 if (newValue as Boolean)

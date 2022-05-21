@@ -9,6 +9,11 @@
             android:key="@string/key_setting_hide_icon"
             android:title="@string/title_setting_hide_icon"
             app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/key_setting_show_system_apps"
+            android:title="@string/title_setting_show_system_apps"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/title_category_about"

@@ -1,4 +1,4 @@
-package lsposed.orange.ui
+package lsposed.orange.ui.main
 
 import android.view.LayoutInflater
 import android.view.View

@@ -8,7 +8,7 @@ import de.robv.android.xposed.*
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import lsposed.orange.BuildConfig
 import lsposed.orange.model.Orientation
-import lsposed.orange.ui.MainActivity
+import lsposed.orange.ui.main.MainFragment
 
 class Hook : IXposedHookZygoteInit, IXposedHookLoadPackage {
 
@@ -56,7 +56,7 @@ class Hook : IXposedHookZygoteInit, IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName == BuildConfig.APPLICATION_ID) {
             XposedHelpers.findAndHookMethod(
-                MainActivity::class.qualifiedName,
+                MainFragment::class.qualifiedName,
                 lpparam.classLoader,
                 "isModuleActive",
                 XC_MethodReplacement.returnConstant(true)

@@ -1,28 +1,37 @@
-package lsposed.orange.ui
+package lsposed.orange.ui.main
 
 import android.app.Application
+import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lsposed.orange.R
 import lsposed.orange.model.ConfigApp
 import lsposed.orange.model.ConfigAppRepo
 import lsposed.orange.model.ModuleDB
 import lsposed.orange.model.Orientation
 
-class MainViewModel(app: Application) : AndroidViewModel(app) {
+class MainViewModel(app: Application) : AndroidViewModel(app),
+    SharedPreferences.OnSharedPreferenceChangeListener {
 
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(app)
+    private val keyshowSystemApps =
+        getApplication<Application>().getString(R.string.key_setting_show_system_apps)
+    private val showSystemApps get() = prefs.getBoolean(keyshowSystemApps, false)
     private val configAppRepo = ConfigAppRepo(ModuleDB.getInstance(app).configAppDao())
     private val appList = mutableListOf<AppListItem>()
     private val appListLiveDataInternal = MutableLiveData<List<AppListItem>>()
     private val isLoadingLiveDataInternal = MutableLiveData<Boolean>()
     private var fetchConfigAppsJob: Job? = null
+    private var hasLoadedAppList = false
     val appListLiveData: LiveData<List<AppListItem>> = appListLiveDataInternal
     val isLoadingLiveData: LiveData<Boolean> = isLoadingLiveDataInternal
 
@@ -33,8 +42,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             viewModelScope.launch { filterApps() }
         }
 
-    fun loadAppList() {
-        if (isLoadingLiveDataInternal.value == true) {
+    init {
+        prefs.registerOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        prefs.unregisterOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+        if (key == keyshowSystemApps) {
+            hasLoadedAppList = false
+        }
+    }
+
+    fun loadAppList(forceReload: Boolean = false) {
+        if (isLoadingLiveDataInternal.value == true || hasLoadedAppList && !forceReload) {
             return
         }
         isLoadingLiveDataInternal.value = true
@@ -43,8 +67,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val packageManager = getApplication<Application>().packageManager
             packageManager.getInstalledApplications(0)
                 .filter {
-                    it.flags and ApplicationInfo.FLAG_SYSTEM == 0 &&
-                            it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP == 0
+                    showSystemApps || (it.flags and ApplicationInfo.FLAG_SYSTEM == 0 &&
+                            it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP == 0)
                 }
                 .mapTo(appList) { appInfo ->
                     AppListItem(
@@ -73,6 +97,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         appList.sortBy { it.orientation == Orientation.UNSPECIFIED }
                         filterApps()
                         isLoadingLiveDataInternal.postValue(false)
+                        hasLoadedAppList = true
                     } else {
                         filterApps()
                     }

@@ -1,4 +1,4 @@
-package lsposed.orange.ui
+package lsposed.orange.ui.main
 
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable

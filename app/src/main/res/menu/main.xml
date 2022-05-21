@@ -13,7 +13,7 @@
         android:title="@string/title_menu_refresh" />
     <item
         android:id="@+id/setting"
-        android:title="@string/title_menu_setting" />
+        android:title="@string/title_menu_settings" />
     <item
         android:id="@+id/exit"
         android:title="@string/title_menu_exit" />
