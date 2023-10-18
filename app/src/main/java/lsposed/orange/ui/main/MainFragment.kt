@@ -109,13 +109,10 @@ class MainFragment : Fragment(R.layout.fragment_main), AppListAdapter.EventListe
                 ) { dialog, which ->
                     mainViewModel.updateConfigApp(appListItem.packageName, which)
                     dialog.dismiss()
-                }
-                .show()
+                }.show()
             lastItemClickTime = currentTime
         }
     }
 
-    private fun isModuleActive(): Boolean {
-        return false
-    }
+    private fun isModuleActive() = false
 }

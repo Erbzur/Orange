@@ -9,28 +9,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lsposed.orange.R
-import lsposed.orange.model.ConfigApp
-import lsposed.orange.model.ConfigAppRepo
-import lsposed.orange.model.ModuleDB
+import lsposed.orange.SharedConfig
 import lsposed.orange.model.Orientation
 
 class MainViewModel(app: Application) : AndroidViewModel(app),
     SharedPreferences.OnSharedPreferenceChangeListener {
 
+    private val sharedConfig = SharedConfig.Provider(app)
     private val prefs = PreferenceManager.getDefaultSharedPreferences(app)
-    private val keyshowSystemApps =
-        getApplication<Application>().getString(R.string.key_setting_show_system_apps)
+    private val keyshowSystemApps = app.getString(R.string.key_setting_show_system_apps)
     private val showSystemApps get() = prefs.getBoolean(keyshowSystemApps, false)
-    private val configAppRepo = ConfigAppRepo(ModuleDB.getInstance(app).configAppDao())
     private val appList = mutableListOf<AppListItem>()
     private val appListLiveDataInternal = MutableLiveData<List<AppListItem>>()
     private val isLoadingLiveDataInternal = MutableLiveData<Boolean>()
-    private var fetchConfigAppsJob: Job? = null
     private var hasLoadedAppList = false
     val appListLiveData: LiveData<List<AppListItem>> = appListLiveDataInternal
     val isLoadingLiveData: LiveData<Boolean> = isLoadingLiveDataInternal
@@ -52,6 +46,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app),
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+        sharedConfig.savePref(key)
         if (key == keyshowSystemApps) {
             hasLoadedAppList = false
         }
@@ -71,38 +66,41 @@ class MainViewModel(app: Application) : AndroidViewModel(app),
                             it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP == 0)
                 }
                 .mapTo(appList) { appInfo ->
+                    val configApp = sharedConfig.findConfigApp(appInfo.packageName)
                     AppListItem(
                         packageName = appInfo.packageName,
                         name = packageManager.getApplicationLabel(appInfo).toString(),
                         icon = packageManager.getApplicationIcon(appInfo),
                         info = appInfo,
+                        orientation = if (configApp != null) {
+                            Orientation.values()[configApp.orientation]
+                        } else {
+                            Orientation.UNSPECIFIED
+                        }
                     )
                 }
                 .sortBy { it.packageName }
-            fetchConfigAppsJob?.cancel()
-            fetchConfigAppsJob = launch {
-                configAppRepo.configApps.collectLatest { configApps ->
-                    appList.replaceAll { appListItem ->
-                        val configApp =
-                            configApps.find { it.packageName == appListItem.packageName }
-                        appListItem.copy(
-                            orientation = if (configApp != null) {
-                                Orientation.values()[configApp.orientation]
-                            } else {
-                                Orientation.UNSPECIFIED
-                            }
-                        )
-                    }
-                    if (isLoadingLiveDataInternal.value != false) {
-                        appList.sortBy { it.orientation == Orientation.UNSPECIFIED }
-                        filterApps()
-                        isLoadingLiveDataInternal.postValue(false)
-                        hasLoadedAppList = true
-                    } else {
-                        filterApps()
-                    }
-                }
+            appList.sortBy { it.orientation == Orientation.UNSPECIFIED }
+            filterApps()
+            isLoadingLiveDataInternal.postValue(false)
+            hasLoadedAppList = true
+        }
+    }
+
+    fun updateConfigApp(packageName: String, orientation: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (orientation != Orientation.UNSPECIFIED.ordinal) {
+                sharedConfig.addConfigApp(packageName, orientation)
+            } else {
+                sharedConfig.removeConfigApp(packageName)
             }
+            appList.replaceAll {
+                if (it.packageName == packageName)
+                    it.copy(orientation = Orientation.values()[orientation])
+                else
+                    it
+            }
+            filterApps()
         }
     }
 
@@ -115,16 +113,5 @@ class MainViewModel(app: Application) : AndroidViewModel(app),
         } else {
             appList.toList()
         })
-    }
-
-    fun updateConfigApp(packageName: String, orientation: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val configApp = ConfigApp(packageName, orientation)
-            if (orientation != 0) {
-                configAppRepo.insert(configApp)
-            } else {
-                configAppRepo.delete(configApp)
-            }
-        }
     }
 }
